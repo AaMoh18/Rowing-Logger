@@ -1,28 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity Timing Logger</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-        .table-container { max-height: 500px; overflow-y: auto; }
-    </style>
-</head>
-<body class="bg-gray-100 py-10 px-4">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rowing Logger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background-image: url('https://static.vecteezy.com/system/resources/previews/006/124/029/original/hand-drawn-japanese-wave-background-free-vector.jpg'); /* bg background url */
+      background-repeat: repeat;
+      background-size: cover;
+      background-attachment: fixed;
+      transition: background-color 0.3s ease-in-out;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    .table-container { max-height: 500px; overflow-y: auto; }
 
-    <div class="w-full max-w-4xl mx-auto space-y-8">
-        <!-- Input Form Card -->
-        <div class="w-full bg-white rounded-xl shadow-lg p-6 md:p-8">
-            <div class="text-center mb-6">
-                <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Activity Logger</h1>
-                <p class="text-gray-500 mt-1">Log your sessions to a shared Google Sheet.</p>
-            </div>
+#dayCounter {
+  background-color: #000000 !important; /* pure black */
+  color: #FFFF33 !important;           /* neon yellow */
+  font-weight: bold;
+  border: 1px solid #222;              /* subtle border */
+  text-shadow: 0 0 4px #FFFF33, 0 0 1px #FFFF33; /* glowing neon effect */
+}
+
+
+    /* --- Light theme adjustments (improved readability) --- */
+    body {
+      background-color: #f0f6ff; /* subtle bluish background */
+    }
+
+    .bg-white, .card-bg {
+      background-color: rgba(250, 252, 255, 0.92) !important; /* more white, less blue */
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #111827; /* darker text (almost black) */
+    }
+
+    thead {
+      background-color: rgba(240, 245, 255, 0.95) !important; /* lighter header */
+    }
+
+    tbody {
+      background-color: rgba(245, 250, 255, 0.7) !important; /* pale translucent rows */
+    }
+
+    tbody tr:hover {
+      background-color: rgba(230, 240, 255, 0.95) !important; /* light blue hover */
+    }
+
+    /* Make labels and small text darker for better contrast */
+    label, .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800 {
+      color: #1f2937 !important; /* darker gray */
+    }
+
+    input, select, textarea {
+      background-color: rgba(255, 255, 255, 0.95); /* whiter input fields */
+      border: 1px solid #cfd9e6;
+      color: #111827; /* ensure text inside is dark */
+    }
+
+    input::placeholder {
+      color: #6b7280; /* neutral gray placeholder */
+    }
+
+    /* --- Dark theme styles --- */
+    .dark-theme {
+      background-image: url('https://i.etsystatic.com/5017544/r/il/3a4eab/2779995563/il_1140xN.2779995563_ts4l.jpg');
+      background-color: #0f172a; /* Fallback color */
+      color: #e2e8f0; 
+    }
+
+    .dark-theme .bg-white {
+      background-color: rgba(30, 41, 59, 0.8) !important; /* Semi-transparent slate card */
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      color: #e2e8f0;
+    }
+
+    .dark-theme .text-gray-800,
+    .dark-theme .text-gray-700,
+    .dark-theme .text-gray-600,
+    .dark-theme .text-gray-500 {
+      color: #e2e8f0 !important;
+    }
+
+    .dark-theme h1, 
+    .dark-theme h2 {
+      color: #f8fafc !important; /* bright headings */
+    }
+
+    .dark-theme input,
+    .dark-theme select,
+    .dark-theme button:not(#submitButton) { 
+      background-color: #334155; 
+      color: #f1f5f9;
+      border: 1px solid #475569;
+    }
+    
+    .dark-theme input::placeholder {
+      color: #94a3b8; 
+    }
+    
+    .dark-theme table {
+      color: #f1f5f9;
+    }
+
+    .dark-theme thead {
+      background-color: rgba(30, 41, 59, 0.7) !important;
+    }
+
+    .dark-theme tbody tr:hover {
+      background-color: rgba(51, 65, 85, 0.7);
+    }
+
+    .dark-theme #messagePopup {
+      color: #fff !important;
+    }
+
+    /* --- Custom Scrollbar Styles --- */
+    .table-container::-webkit-scrollbar {
+      width: 10px;
+    }
+    .table-container::-webkit-scrollbar-track {
+      background-color: #dbeafe; /* Light blue track */
+    }
+    .table-container::-webkit-scrollbar-thumb {
+      background-color: #60a5fa; /* Medium blue thumb */
+      border-radius: 10px;
+      border: 2px solid #dbeafe; /* Padding effect */
+    }
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background-color: #3b82f6; /* Darker blue on hover */
+    }
+    .dark-theme .table-container::-webkit-scrollbar-track {
+      background-color: #1e293b; /* Dark slate track */
+    }
+    .dark-theme .table-container::-webkit-scrollbar-thumb {
+      background-color: #475569; /* Slate thumb */
+      border-color: #1e293b;
+    }
+    .dark-theme .table-container::-webkit-scrollbar-thumb:hover {
+      background-color: #64748b; /* Lighter slate on hover */
+    }
+
+  </style>
+</head>
+<body class="py-10 px-4">
+
+  <div class="w-full max-w-4xl mx-auto space-y-8">
+    <!-- Theme Toggle Button -->
+    <div class="flex justify-end">
+      <button id="themeToggle" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700">
+        Switch to Dark Mode
+      </button>
+    </div>
+
+    <!-- Input Form Card -->
+    <div class="w-full bg-white rounded-xl shadow-lg p-6 md:p-8">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Rowing Performance Log<h1>
+        <p class="text-gray-500 mt-1">Log your time & distance each session.</p>
+      </div>
+      <!-- rest of your form stays unchanged -->
+
             <form id="loggerForm" class="space-y-6">
                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -52,7 +197,10 @@
         <!-- Logged Data Table Card -->
         <div class="w-full bg-white rounded-xl shadow-lg p-6 md:p-8">
              <div class="md:flex justify-between items-center mb-4 space-y-4 md:space-y-0">
-                <h2 class="text-xl md:text-2xl font-bold text-gray-800">Logged Activities</h2>
+                <div class="flex items-center space-x-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800">Logged Activities</h2>
+                    <span id="dayCounter" class="text-sm font-medium text-gray-500 bg-gray-200 px-3 py-1 rounded-full hidden"></span>
+                </div>
                 <div class="flex items-center space-x-2 md:space-x-4">
                     <input type="text" id="filterNameInput" placeholder="Filter by name..." class="w-32 md:w-48 px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500">
                     <select id="sortSelect" class="px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -105,6 +253,8 @@
             const filterNameInput = document.getElementById('filterNameInput');
             const sortSelect = document.getElementById('sortSelect');
             const nameLegend = document.getElementById('nameLegend');
+            const themeToggle = document.getElementById('themeToggle');
+            const dayCounter = document.getElementById('dayCounter');
             
             // !!! IMPORTANT !!! PASTE YOUR WEB APP URL HERE
             const SCRIPT_URL =  'PASTE_YOUR_NEW_DEPLOYED_WEB_APP_URL_HERE';
@@ -289,6 +439,22 @@
 
                     allActivities = Object.values(grouped);
 
+                    // --- Calculate and Display Day Span ---
+                    if (allActivities.length > 0) {
+                        const dates = allActivities.map(activity => new Date(activity.date));
+                        const minDate = new Date(Math.min.apply(null, dates));
+                        const maxDate = new Date(Math.max.apply(null, dates));
+                        
+                        const diffTime = Math.abs(maxDate - minDate);
+                        const daySpan = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                        dayCounter.textContent = `${daySpan} Days`;
+                        dayCounter.classList.remove('hidden');
+                    } else {
+                        dayCounter.classList.add('hidden');
+                    }
+                    // --- End Day Count ---
+
                     // --- SMART NAME GROUPING AND FREQUENCY COUNT ---
                     const uniqueNames = [...new Set(allActivities.map(a => a.name))];
                     const nameMap = {};
@@ -398,8 +564,18 @@
             loadNames();
             fetchAndDisplayData();
         });
+// --- Theme Toggle ---
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', () => {
+  document.body.classList.toggle('dark-theme');
+  if (document.body.classList.contains('dark-theme')) {
+    themeToggle.textContent = "Switch to Light Mode";
+  } else {
+    themeToggle.textContent = "Switch to Dark Mode";
+  }
+});
+
     </script>
 </body>
 </html>
-
 
