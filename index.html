@@ -155,6 +155,11 @@
   <div class="w-full max-w-4xl mx-auto space-y-8">
     <!-- Theme Toggle Button -->
     <div class="flex justify-end">
+      <!-- Modular Button for Log Analysis -->
+      <a href="https://rowing-analyse.netlify.app" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg bg-gray-600 text-white font-semibold shadow-md hover:bg-gray-700 transition-colors duration-200 mr-4">
+          Log Analysis
+      </a>
+
       <button id="themeToggle" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700">
         Switch to Dark Mode
       </button>
@@ -163,7 +168,7 @@
     <!-- Input Form Card -->
     <div class="w-full bg-white rounded-xl shadow-lg p-6 md:p-8">
       <div class="text-center mb-6">
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Rowing Performance Log<h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Rowing Performance Log</h1>
         <p class="text-gray-500 mt-1">Log your time & distance each session.</p>
       </div>
       <!-- rest of your form stays unchanged -->
@@ -257,7 +262,7 @@
             const dayCounter = document.getElementById('dayCounter');
             
             // !!! IMPORTANT !!! PASTE YOUR WEB APP URL HERE
-            const SCRIPT_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+            const SCRIPT_URL = //'paste_your_script_url_where_you_Store_your_sheet';
             const STORAGE_KEY = 'activityLoggerNames';
             
             let allActivities = [];
@@ -428,7 +433,31 @@
                     const result = await response.json();
                     if (result.result !== 'success') throw new Error(result.message);
                     
-                    const grouped = result.data.reduce((acc, row) => {
+                    const rawData = result.data;
+
+                    // --- SMART NAME GROUPING (Step 1: Normalize names on raw data) ---
+                    const uniqueRawNames = [...new Set(rawData.map(row => row.name))];
+                    const nameMap = {};
+                    uniqueRawNames.forEach(name => {
+                        let canonicalName = name;
+                        uniqueRawNames.forEach(otherName => {
+                            if (otherName.startsWith(name) && otherName.length > canonicalName.length) {
+                                canonicalName = otherName;
+                            }
+                        });
+                        nameMap[name] = canonicalName;
+                    });
+                    Object.keys(nameMap).forEach(key => {
+                        let mapped = nameMap[key];
+                        while (mapped !== nameMap[mapped]) { mapped = nameMap[mapped]; }
+                        nameMap[key] = mapped;
+                    });
+                    rawData.forEach(row => {
+                        row.name = nameMap[row.name];
+                    });
+
+                    // --- GROUPING (Step 2: Group the normalized data) ---
+                    const grouped = rawData.reduce((acc, row) => {
                         const key = `${row.name}-${row.date}`;
                         if (!acc[key]) {
                             acc[key] = { name: row.name, date: row.date, timings: [] };
@@ -448,48 +477,18 @@
                         const diffTime = Math.abs(maxDate - minDate);
                         const daySpan = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-                        dayCounter.textContent = `${daySpan} Days`;
+                        dayCounter.textContent = `${daySpan} Day Span`;
                         dayCounter.classList.remove('hidden');
                     } else {
                         dayCounter.classList.add('hidden');
                     }
                     // --- End Day Count ---
-
-                    // --- SMART NAME GROUPING AND FREQUENCY COUNT ---
-                    const uniqueNames = [...new Set(allActivities.map(a => a.name))];
-                    const nameMap = {};
-
-                    // Create a map from each name variation to its longest (canonical) form.
-                    uniqueNames.forEach(name => {
-                        let canonicalName = name;
-                        uniqueNames.forEach(otherName => {
-                            if (otherName.startsWith(name) && otherName.length > canonicalName.length) {
-                                canonicalName = otherName;
-                            }
-                        });
-                        nameMap[name] = canonicalName;
-                    });
                     
-                    // Second pass to resolve chained mappings (e.g., A -> B, B -> C => A -> C)
-                    Object.keys(nameMap).forEach(key => {
-                        let mapped = nameMap[key];
-                        while (mapped !== nameMap[mapped]) {
-                            mapped = nameMap[mapped];
-                        }
-                        nameMap[key] = mapped;
-                    });
-
-                    // Apply the canonical name to each activity
-                    allActivities.forEach(activity => {
-                        activity.name = nameMap[activity.name];
-                    });
-                    
-                    // Now, calculate frequencies based on the canonical names
+                    // --- FREQUENCY COUNT (Step 3: Count frequencies from final grouped data) ---
                     nameFrequencies = allActivities.reduce((acc, activity) => {
                         acc[activity.name] = (acc[activity.name] || 0) + 1;
                         return acc;
                     }, {});
-                    // --- END OF NAME GROUPING ---
 
                     const counts = Object.values(nameFrequencies);
                     minNameCount = counts.length > 0 ? Math.min(...counts) : 1;
@@ -578,5 +577,4 @@ themeToggle.addEventListener('click', () => {
     </script>
 </body>
 </html>
-
 
